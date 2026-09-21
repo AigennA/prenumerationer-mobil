@@ -9,9 +9,10 @@ type Props = {
   prenumerationer: Prenumeration[];
   isRefreshing: boolean;
   onRefresh: () => void;
+  onSelect: (id: number) => void;
 };
 
-export default function PrenumerationList({ prenumerationer, isRefreshing, onRefresh }: Props) {
+export default function PrenumerationList({ prenumerationer, isRefreshing, onRefresh, onSelect }: Props) {
   return (
     <FlatList
       style={styles.list}
@@ -19,7 +20,12 @@ export default function PrenumerationList({ prenumerationer, isRefreshing, onRef
       data={prenumerationer}
       keyExtractor={(item) => String(item.id)}
       renderItem={({ item }) => (
-        <PrenumerationCard name={item.serviceName} note={item.note} status={getStatus(item)} />
+        <PrenumerationCard
+          name={item.serviceName}
+          note={item.note}
+          status={getStatus(item)}
+          onPress={() => onSelect(item.id)}
+        />
       )}
       refreshControl={
         <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor={colors.accent} />

@@ -16,6 +16,7 @@ export default function RootLayout() {
         }}
       >
         <Stack.Screen name="index" options={{ title: "Prenumerationskollen" }} />
+        <Stack.Screen name="prenumeration/[id]" options={{ title: "", headerBackTitle: "Tillbaka" }} />
       </Stack>
     </>
   );

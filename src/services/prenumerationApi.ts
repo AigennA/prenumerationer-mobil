@@ -36,3 +36,8 @@ export async function getPrenumerationer(): Promise<Prenumeration[]> {
   const response = await request(API_URL);
   return response.json();
 }
+
+export async function getPrenumeration(id: number): Promise<Prenumeration> {
+  const response = await request(`${API_URL}/${id}`);
+  return response.json();
+}

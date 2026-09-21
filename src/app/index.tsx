@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
 import PressableButton from "@/components/PressableButton";
@@ -22,9 +23,13 @@ export default function Index() {
     }
   }, []);
 
-  useEffect(() => {
-    loadPrenumerationer().finally(() => setIsLoading(false));
-  }, [loadPrenumerationer]);
+  const router = useRouter();
+
+  useFocusEffect(
+    useCallback(() => {
+      loadPrenumerationer().finally(() => setIsLoading(false));
+    }, [loadPrenumerationer])
+  );
 
   async function handleRefresh() {
     setIsRefreshing(true);
@@ -61,6 +66,7 @@ export default function Index() {
       prenumerationer={prenumerationer}
       isRefreshing={isRefreshing}
       onRefresh={handleRefresh}
+      onSelect={(id) => router.push({ pathname: "/prenumeration/[id]", params: { id: String(id) } })}
     />
   );
 }
