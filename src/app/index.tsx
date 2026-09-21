@@ -1,29 +1,47 @@
-import { useEffect, useState } from "react";
-import { ActivityIndicator, FlatList, StyleSheet, Text, View } from "react-native";
+import { useCallback, useEffect, useState } from "react";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
+import PressableButton from "@/components/PressableButton";
+import PrenumerationList from "@/components/PrenumerationList";
+import { colors } from "@/constants/colors";
 import { API_BASE_URL, getPrenumerationer } from "@/services/prenumerationApi";
 import { Prenumeration } from "@/types/prenumeration";
-import PrenumerationCard from "@/components/PrenumerationCard";
-import { colors } from "@/constants/colors";
-import { getStatus } from "@/utils/status";
-
 
 export default function Index() {
   const [prenumerationer, setPrenumerationer] = useState<Prenumeration[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    getPrenumerationer()
-      .then(setPrenumerationer)
-      .catch((err: Error) => setError(err.message))
-      .finally(() => setIsLoading(false));
+  const loadPrenumerationer = useCallback(async () => {
+    setError("");
+    try {
+      setPrenumerationer(await getPrenumerationer());
+    } catch (err) {
+      setError((err as Error).message);
+    }
   }, []);
+
+  useEffect(() => {
+    loadPrenumerationer().finally(() => setIsLoading(false));
+  }, [loadPrenumerationer]);
+
+  async function handleRefresh() {
+    setIsRefreshing(true);
+    await loadPrenumerationer();
+    setIsRefreshing(false);
+  }
+
+  async function handleRetry() {
+    setIsLoading(true);
+    await loadPrenumerationer();
+    setIsLoading(false);
+  }
 
   if (isLoading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" />
+        <ActivityIndicator size="large" color={colors.accent} />
       </View>
     );
   }
@@ -33,19 +51,16 @@ export default function Index() {
       <View style={styles.center}>
         <Text style={styles.error}>{error}</Text>
         <Text style={styles.hint}>{API_BASE_URL}</Text>
+        <PressableButton title="Försök igen" onPress={handleRetry} />
       </View>
     );
   }
 
   return (
-    <FlatList
-      style={styles.list}
-      contentContainerStyle={styles.content}
-      data={prenumerationer}
-      keyExtractor={(item) => String(item.id)}
-      renderItem={({ item }) => (
-        <PrenumerationCard name={item.serviceName} note={item.note} status={getStatus(item)} />
-      )}
+    <PrenumerationList
+      prenumerationer={prenumerationer}
+      isRefreshing={isRefreshing}
+      onRefresh={handleRefresh}
     />
   );
 }
@@ -55,20 +70,16 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
+    gap: 12,
     padding: 24,
-    gap: 8,
+    backgroundColor: colors.background,
   },
   error: {
+    color: colors.text,
     fontSize: 16,
     textAlign: "center",
   },
   hint: {
-    color: "#888",
-  },
-  list: {
-    backgroundColor: colors.background,
-  },
-  content: {
-    padding: 16,
+    color: colors.muted,
   },
 });
