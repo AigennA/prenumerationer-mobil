@@ -3,6 +3,10 @@ import { ActivityIndicator, FlatList, StyleSheet, Text, View } from "react-nativ
 
 import { API_BASE_URL, getPrenumerationer } from "@/services/prenumerationApi";
 import { Prenumeration } from "@/types/prenumeration";
+import PrenumerationCard from "@/components/PrenumerationCard";
+import { colors } from "@/constants/colors";
+import { getStatus } from "@/utils/status";
+
 
 export default function Index() {
   const [prenumerationer, setPrenumerationer] = useState<Prenumeration[]>([]);
@@ -35,9 +39,13 @@ export default function Index() {
 
   return (
     <FlatList
+      style={styles.list}
+      contentContainerStyle={styles.content}
       data={prenumerationer}
       keyExtractor={(item) => String(item.id)}
-      renderItem={({ item }) => <Text style={styles.item}>{item.serviceName}</Text>}
+      renderItem={({ item }) => (
+        <PrenumerationCard name={item.serviceName} note={item.note} status={getStatus(item)} />
+      )}
     />
   );
 }
@@ -57,8 +65,10 @@ const styles = StyleSheet.create({
   hint: {
     color: "#888",
   },
-  item: {
-    fontSize: 18,
+  list: {
+    backgroundColor: colors.background,
+  },
+  content: {
     padding: 16,
   },
 });
