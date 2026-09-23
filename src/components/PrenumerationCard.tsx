@@ -22,7 +22,7 @@ export default function PrenumerationCard({ name, note, status, onPress }: Props
       <Avatar name={name} />
       <View style={styles.info}>
         <Text style={styles.name}>{name}</Text>
-        {note ? <Text style={styles.note}>{note}</Text> : null}
+        <Text style={styles.note}>{note || " "}</Text>
         <StatusBadge status={status} />
       </View>
     </TouchableOpacity>

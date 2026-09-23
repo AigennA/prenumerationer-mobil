@@ -2,11 +2,13 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
+import NyPrenumerationForm from "@/components/NyPrenumerationForm";
 import PressableButton from "@/components/PressableButton";
 import PrenumerationList from "@/components/PrenumerationList";
 import { colors } from "@/constants/colors";
-import { API_BASE_URL, getPrenumerationer } from "@/services/prenumerationApi";
+import { API_BASE_URL, createPrenumeration, getPrenumerationer } from "@/services/prenumerationApi";
 import { Prenumeration } from "@/types/prenumeration";
+import { getToday } from "@/utils/date";
 
 export default function Index() {
   const [prenumerationer, setPrenumerationer] = useState<Prenumeration[]>([]);
@@ -43,6 +45,18 @@ export default function Index() {
     setIsLoading(false);
   }
 
+  async function handleAdd(serviceName: string) {
+    const created = await createPrenumeration({
+      serviceName,
+      note: null,
+      startDate: getToday(),
+      endDate: null,
+      isActive: true,
+    });
+    setPrenumerationer([...prenumerationer, created]);
+    router.push({ pathname: "/prenumeration/[id]", params: { id: String(created.id) } });
+  }
+
   if (isLoading) {
     return (
       <View style={styles.center}>
@@ -62,16 +76,23 @@ export default function Index() {
   }
 
   return (
-    <PrenumerationList
-      prenumerationer={prenumerationer}
-      isRefreshing={isRefreshing}
-      onRefresh={handleRefresh}
-      onSelect={(id) => router.push({ pathname: "/prenumeration/[id]", params: { id: String(id) } })}
-    />
+    <View style={styles.screen}>
+      <NyPrenumerationForm onAdd={handleAdd} />
+      <PrenumerationList
+        prenumerationer={prenumerationer}
+        isRefreshing={isRefreshing}
+        onRefresh={handleRefresh}
+        onSelect={(id) => router.push({ pathname: "/prenumeration/[id]", params: { id: String(id) } })}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
   center: {
     flex: 1,
     alignItems: "center",

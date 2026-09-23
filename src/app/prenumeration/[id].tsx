@@ -1,9 +1,10 @@
 import { Stack, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
 import Avatar from "@/components/Avatar";
 import DateField from "@/components/DateField";
+import PressableButton from "@/components/PressableButton";
 import StatusBadge from "@/components/StatusBadge";
 import ToggleSwitch from "@/components/ToggleSwitch";
 import { colors } from "@/constants/colors";
@@ -30,10 +31,16 @@ export default function PrenumerationDetail() {
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
+  const [serviceName, setServiceName] = useState("");
+  const [note, setNote] = useState("");
 
   useEffect(() => {
     getPrenumeration(Number(id))
-      .then(setPrenumeration)
+      .then((data) => {
+        setPrenumeration(data);
+        setServiceName(data.serviceName);
+        setNote(data.note ?? "");
+      })
       .catch((err: Error) => setError(err.message));
   }, [id]);
 
@@ -59,6 +66,20 @@ export default function PrenumerationDetail() {
     });
   }
 
+  function handleTextSave() {
+    if (!prenumeration) return;
+    const trimmedName = serviceName.trim();
+    if (trimmedName === "") {
+      setSaveError("Namnet får inte vara tomt.");
+      return;
+    }
+    const trimmedNote = note.trim();
+    if (trimmedName === prenumeration.serviceName && trimmedNote === (prenumeration.note ?? "")) return;
+    setServiceName(trimmedName);
+    setNote(trimmedNote);
+    save({ ...prenumeration, serviceName: trimmedName, note: trimmedNote || null });
+  }
+
   if (error) {
     return (
       <View style={styles.center}>
@@ -75,8 +96,11 @@ export default function PrenumerationDetail() {
     );
   }
 
+  const textChanged =
+    serviceName.trim() !== prenumeration.serviceName || note.trim() !== (prenumeration.note ?? "");
+
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+    <ScrollView style={styles.screen} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       <Stack.Screen options={{ title: prenumeration.serviceName }} />
 
       <View style={styles.header}>
@@ -97,8 +121,33 @@ export default function PrenumerationDetail() {
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.label}>Anteckning</Text>
-        <Text style={styles.value}>{prenumeration.note || "Ingen anteckning"}</Text>
+        <Text style={styles.label}>Namn</Text>
+        <TextInput
+          style={styles.input}
+          value={serviceName}
+          onChangeText={setServiceName}
+          onSubmitEditing={handleTextSave}
+          returnKeyType="done"
+          editable={!saving}
+        />
+        <Text style={[styles.label, styles.spacing]}>Anteckning</Text>
+        <TextInput
+          style={styles.input}
+          value={note}
+          onChangeText={setNote}
+          onSubmitEditing={handleTextSave}
+          placeholder="Ingen anteckning"
+          placeholderTextColor={colors.muted}
+          returnKeyType="done"
+          editable={!saving}
+        />
+        <View style={styles.spacing}>
+          <PressableButton
+            title={saving ? "Sparar..." : "Spara ändringar"}
+            onPress={handleTextSave}
+            disabled={!textChanged || saving}
+          />
+        </View>
       </View>
 
       <View style={styles.section}>
@@ -168,7 +217,13 @@ const styles = StyleSheet.create({
     color: colors.muted,
     fontSize: 13,
   },
-  value: {
+  input: {
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
     color: colors.text,
     fontSize: 16,
   },

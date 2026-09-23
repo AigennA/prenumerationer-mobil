@@ -9,3 +9,5 @@ export type Prenumeration = {
   documentUrl: string | null;
   documentName: string | null;
 };
+
+export type NyPrenumeration = Omit<Prenumeration, "id" | "logoUrl" | "documentUrl" | "documentName">;

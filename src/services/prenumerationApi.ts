@@ -1,6 +1,6 @@
 import Constants from "expo-constants";
 
-import { Prenumeration } from "@/types/prenumeration";
+import { NyPrenumeration, Prenumeration } from "@/types/prenumeration";
 
 const API_PORT = 5175;
 
@@ -39,6 +39,15 @@ export async function getPrenumerationer(): Promise<Prenumeration[]> {
 
 export async function getPrenumeration(id: number): Promise<Prenumeration> {
   const response = await request(`${API_URL}/${id}`);
+  return response.json();
+}
+
+export async function createPrenumeration(prenumeration: NyPrenumeration): Promise<Prenumeration> {
+  const response = await request(API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(prenumeration),
+  });
   return response.json();
 }
 
