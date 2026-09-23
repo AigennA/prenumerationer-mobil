@@ -4,21 +4,43 @@ import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from "react-nat
 
 import Avatar from "@/components/Avatar";
 import StatusBadge from "@/components/StatusBadge";
+import ToggleSwitch from "@/components/ToggleSwitch";
 import { colors } from "@/constants/colors";
-import { getPrenumeration } from "@/services/prenumerationApi";
+import { getPrenumeration, updatePrenumeration } from "@/services/prenumerationApi";
 import { Prenumeration } from "@/types/prenumeration";
-import { getStatus } from "@/utils/status";
+import { getStatus, getToday } from "@/utils/status";
 
 export default function PrenumerationDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [prenumeration, setPrenumeration] = useState<Prenumeration | null>(null);
   const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
 
   useEffect(() => {
     getPrenumeration(Number(id))
       .then(setPrenumeration)
       .catch((err: Error) => setError(err.message));
   }, [id]);
+
+  async function handleToggle(isActive: boolean) {
+    if (!prenumeration) return;
+    const updated = {
+      ...prenumeration,
+      isActive,
+      endDate: isActive ? null : getToday(),
+    };
+    setSaving(true);
+    setSaveError("");
+    try {
+      await updatePrenumeration(updated);
+      setPrenumeration(updated);
+    } catch (err) {
+      setSaveError((err as Error).message);
+    } finally {
+      setSaving(false);
+    }
+  }
 
   if (error) {
     return (
@@ -44,6 +66,16 @@ export default function PrenumerationDetail() {
         <Avatar name={prenumeration.serviceName} size={96} />
         <Text style={styles.name}>{prenumeration.serviceName}</Text>
         <StatusBadge status={getStatus(prenumeration)} />
+      </View>
+
+      <View style={styles.section}>
+        <ToggleSwitch
+          label="Aktiv prenumeration"
+          value={prenumeration.isActive}
+          onValueChange={handleToggle}
+          disabled={saving}
+        />
+        {saveError ? <Text style={styles.saveError}>{saveError}</Text> : null}
       </View>
 
       <View style={styles.section}>
@@ -109,5 +141,10 @@ const styles = StyleSheet.create({
   },
   spacing: {
     marginTop: 12,
+  },
+  saveError: {
+    color: colors.danger,
+    fontSize: 14,
+    marginTop: 8,
   },
 });

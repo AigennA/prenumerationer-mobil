@@ -41,3 +41,11 @@ export async function getPrenumeration(id: number): Promise<Prenumeration> {
   const response = await request(`${API_URL}/${id}`);
   return response.json();
 }
+
+export async function updatePrenumeration(prenumeration: Prenumeration): Promise<void> {
+  await request(`${API_URL}/${prenumeration.id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(prenumeration),
+  });
+}
