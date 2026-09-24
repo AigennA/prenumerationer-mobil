@@ -6,6 +6,7 @@ import StatusBadge from "@/components/StatusBadge";
 import { colors } from "@/constants/colors";
 import { getLogo } from "@/utils/logo";
 import { Period } from "@/utils/period";
+import { formatPrice } from "@/utils/price";
 import { Status } from "@/utils/status";
 
 type Props = {
@@ -14,10 +15,11 @@ type Props = {
   logoUrl: string | null;
   status: Status;
   period: Period | null;
+  price: number | null;
   onPress?: () => void;
 };
 
-export default function PrenumerationCard({ name, note, logoUrl, status, period, onPress }: Props) {
+export default function PrenumerationCard({ name, note, logoUrl, status, period, price, onPress }: Props) {
   return (
     <TouchableOpacity
       style={[styles.card, { borderLeftColor: colors[status] }]}
@@ -30,10 +32,15 @@ export default function PrenumerationCard({ name, note, logoUrl, status, period,
         <Text style={styles.note}>{note || " "}</Text>
         <StatusBadge status={status} />
       </View>
-      {period ? (
+      {price !== null || period ? (
         <View style={styles.period}>
-          <Text style={styles.periodText}>{period.text}</Text>
-          <ProgressBar percent={period.percent} height={6} />
+          {price !== null ? <Text style={styles.price}>{formatPrice(price)}</Text> : null}
+          {period ? (
+            <>
+              <Text style={styles.periodText}>{period.text}</Text>
+              <ProgressBar percent={period.percent} height={6} />
+            </>
+          ) : null}
         </View>
       ) : null}
     </TouchableOpacity>
@@ -69,6 +76,12 @@ const styles = StyleSheet.create({
   period: {
     width: 110,
     gap: 6,
+  },
+  price: {
+    color: colors.text,
+    fontSize: 15,
+    fontWeight: "600",
+    textAlign: "right",
   },
   periodText: {
     color: colors.muted,

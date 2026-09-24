@@ -6,12 +6,16 @@ import NyPrenumerationForm from "@/components/NyPrenumerationForm";
 import PressableButton from "@/components/PressableButton";
 import PrenumerationList from "@/components/PrenumerationList";
 import { colors } from "@/constants/colors";
+import { getAllLocalData } from "@/services/localData";
 import { API_BASE_URL, createPrenumeration, getPrenumerationer } from "@/services/prenumerationApi";
 import { Prenumeration } from "@/types/prenumeration";
 import { getToday } from "@/utils/date";
+import { formatAmount, formatPrice, getPaidSoFar } from "@/utils/price";
+import { getStatus } from "@/utils/status";
 
 export default function Index() {
   const [prenumerationer, setPrenumerationer] = useState<Prenumeration[]>([]);
+  const [prices, setPrices] = useState<Record<number, number | null>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState("");
@@ -19,7 +23,10 @@ export default function Index() {
   const loadPrenumerationer = useCallback(async () => {
     setError("");
     try {
-      setPrenumerationer(await getPrenumerationer());
+      const items = await getPrenumerationer();
+      const localData = await getAllLocalData(items.map((item) => item.id));
+      setPrenumerationer(items);
+      setPrices(Object.fromEntries(items.map((item) => [item.id, localData[item.id].price])));
     } catch (err) {
       setError((err as Error).message);
     }
@@ -75,12 +82,39 @@ export default function Index() {
     );
   }
 
+  const priced = prenumerationer.filter((item) => prices[item.id] != null);
+  const active = priced.filter((item) => getStatus(item) === "active");
+  const upcoming = priced.filter((item) => getStatus(item) === "pending");
+  const activeTotal = active.reduce((sum, item) => sum + prices[item.id]!, 0);
+  const upcomingTotal = upcoming.reduce((sum, item) => sum + prices[item.id]!, 0);
+  const paidTotal = priced.reduce((sum, item) => sum + getPaidSoFar(item, prices[item.id]!), 0);
+
   return (
     <View style={styles.screen}>
       <Image source={require("@/assets/images/logo.png")} style={styles.watermark} />
       <NyPrenumerationForm onAdd={handleAdd} />
+      {priced.length > 0 ? (
+        <View style={styles.summary}>
+          {active.length > 0 ? (
+            <Text style={styles.total}>
+              Totalt <Text style={styles.totalValue}>{formatPrice(activeTotal)}</Text> för aktiva prenumerationer
+            </Text>
+          ) : null}
+          {upcoming.length > 0 ? (
+            <Text style={styles.total}>
+              Kommande <Text style={styles.totalValue}>{formatPrice(upcomingTotal)}</Text>
+            </Text>
+          ) : null}
+          {paidTotal > 0 ? (
+            <Text style={styles.total}>
+              Hittills betalt ca <Text style={styles.totalValue}>{formatAmount(paidTotal)}</Text>
+            </Text>
+          ) : null}
+        </View>
+      ) : null}
       <PrenumerationList
         prenumerationer={prenumerationer}
+        prices={prices}
         isRefreshing={isRefreshing}
         onRefresh={handleRefresh}
         onSelect={(id) => router.push({ pathname: "/prenumeration/[id]", params: { id: String(id) } })}
@@ -118,5 +152,18 @@ const styles = StyleSheet.create({
   },
   hint: {
     color: colors.muted,
+  },
+  summary: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    gap: 2,
+  },
+  total: {
+    color: colors.muted,
+    fontSize: 14,
+  },
+  totalValue: {
+    color: colors.accent,
+    fontWeight: "700",
   },
 });

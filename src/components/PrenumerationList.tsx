@@ -12,12 +12,13 @@ const VISIBLE_COUNT = 5;
 
 type Props = {
   prenumerationer: Prenumeration[];
+  prices: Record<number, number | null>;
   isRefreshing: boolean;
   onRefresh: () => void;
   onSelect: (id: number) => void;
 };
 
-export default function PrenumerationList({ prenumerationer, isRefreshing, onRefresh, onSelect }: Props) {
+export default function PrenumerationList({ prenumerationer, prices, isRefreshing, onRefresh, onSelect }: Props) {
   const [expanded, setExpanded] = useState(false);
   const hiddenCount = prenumerationer.length - VISIBLE_COUNT;
   const visible = expanded ? prenumerationer : prenumerationer.slice(0, VISIBLE_COUNT);
@@ -34,6 +35,7 @@ export default function PrenumerationList({ prenumerationer, isRefreshing, onRef
           logoUrl={item.logoUrl}
           status={getStatus(item)}
           period={getPeriod(item)}
+          price={prices[item.id] ?? null}
           onPress={() => onSelect(item.id)}
         />
       )}

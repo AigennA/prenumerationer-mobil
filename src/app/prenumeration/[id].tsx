@@ -24,11 +24,13 @@ import ProgressBar from "@/components/ProgressBar";
 import StatusBadge from "@/components/StatusBadge";
 import ToggleSwitch from "@/components/ToggleSwitch";
 import { colors } from "@/constants/colors";
+import { getLocalData, LocalData, saveLocalData } from "@/services/localData";
 import { getFileUrl, getPrenumeration, updatePrenumeration, uploadDocument, uploadLogo } from "@/services/prenumerationApi";
 import { Prenumeration } from "@/types/prenumeration";
 import { getToday } from "@/utils/date";
 import { getLogo } from "@/utils/logo";
 import { getPeriod } from "@/utils/period";
+import { formatAmount, getPaymentCount } from "@/utils/price";
 import { getStatus } from "@/utils/status";
 
 function getEndDate(prenumeration: Prenumeration) {
@@ -43,6 +45,11 @@ function getActiveEndDate(prenumeration: Prenumeration) {
   return null;
 }
 
+function parsePrice(value: string) {
+  if (value.trim() === "") return null;
+  return Number(value.replace(",", "."));
+}
+
 export default function PrenumerationDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [prenumeration, setPrenumeration] = useState<Prenumeration | null>(null);
@@ -53,6 +60,8 @@ export default function PrenumerationDetail() {
   const [note, setNote] = useState("");
   const [uploading, setUploading] = useState(false);
   const [showLogo, setShowLogo] = useState(false);
+  const [localData, setLocalData] = useState<LocalData>({ price: null, rating: null });
+  const [price, setPrice] = useState("");
 
   useEffect(() => {
     getPrenumeration(Number(id))
@@ -62,6 +71,10 @@ export default function PrenumerationDetail() {
         setNote(data.note ?? "");
       })
       .catch((err: Error) => setError(err.message));
+    getLocalData(Number(id)).then((data) => {
+      setLocalData(data);
+      setPrice(data.price === null ? "" : String(data.price));
+    });
   }, [id]);
 
   async function save(updated: Prenumeration) {
@@ -86,18 +99,31 @@ export default function PrenumerationDetail() {
     });
   }
 
-  function handleTextSave() {
+  async function handleTextSave() {
     if (!prenumeration) return;
     const trimmedName = serviceName.trim();
     if (trimmedName === "") {
       setSaveError("Namnet får inte vara tomt.");
       return;
     }
+    const newPrice = parsePrice(price);
+    if (newPrice !== null && (Number.isNaN(newPrice) || newPrice < 0)) {
+      setSaveError("Ange ett giltigt pris.");
+      return;
+    }
     const trimmedNote = note.trim();
-    if (trimmedName === prenumeration.serviceName && trimmedNote === (prenumeration.note ?? "")) return;
     setServiceName(trimmedName);
     setNote(trimmedNote);
-    save({ ...prenumeration, serviceName: trimmedName, note: trimmedNote || null });
+    setSaveError("");
+
+    if (newPrice !== localData.price) {
+      const updated = { ...localData, price: newPrice };
+      await saveLocalData(prenumeration.id, updated);
+      setLocalData(updated);
+    }
+    if (trimmedName !== prenumeration.serviceName || trimmedNote !== (prenumeration.note ?? "")) {
+      await save({ ...prenumeration, serviceName: trimmedName, note: trimmedNote || null });
+    }
   }
 
   async function upload(send: () => Promise<Prenumeration>) {
@@ -166,9 +192,12 @@ export default function PrenumerationDetail() {
   }
 
   const textChanged =
-    serviceName.trim() !== prenumeration.serviceName || note.trim() !== (prenumeration.note ?? "");
+    serviceName.trim() !== prenumeration.serviceName ||
+    note.trim() !== (prenumeration.note ?? "") ||
+    parsePrice(price) !== localData.price;
   const period = getPeriod(prenumeration);
   const logo = getLogo(prenumeration.serviceName, prenumeration.logoUrl);
+  const paymentCount = getPaymentCount(prenumeration);
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
@@ -234,6 +263,28 @@ export default function PrenumerationDetail() {
           returnKeyType="done"
           editable={!saving}
         />
+        <Text style={[styles.label, styles.spacing]}>Pris (kr/mån)</Text>
+        <TextInput
+          style={styles.input}
+          value={price}
+          onChangeText={setPrice}
+          onSubmitEditing={handleTextSave}
+          placeholder="Inget pris"
+          placeholderTextColor={colors.muted}
+          keyboardType="decimal-pad"
+          returnKeyType="done"
+          editable={!saving}
+        />
+        <Text style={styles.hint}>Priset sparas bara på den här telefonen.</Text>
+        {localData.price !== null ? (
+          <Text style={styles.paid}>
+            {paymentCount > 0
+              ? `Hittills betalt ca ${formatAmount(localData.price * paymentCount)} (${paymentCount} ${
+                  paymentCount === 1 ? "betalning" : "betalningar"
+                })`
+              : "Ingen betalning ännu"}
+          </Text>
+        ) : null}
         <View style={styles.spacing}>
           <PressableButton
             title={saving ? "Sparar..." : "Spara ändringar"}
@@ -341,6 +392,16 @@ const styles = StyleSheet.create({
   value: {
     color: colors.muted,
     fontSize: 15,
+  },
+  hint: {
+    color: colors.muted,
+    fontSize: 12,
+    marginTop: 4,
+  },
+  paid: {
+    color: colors.text,
+    fontSize: 14,
+    marginTop: 8,
   },
   input: {
     backgroundColor: colors.background,

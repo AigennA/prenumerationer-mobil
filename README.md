@@ -11,6 +11,7 @@ Appen är byggd med React Native och Expo och använder samma backend som webbap
 - Datumväljare, ✕ tar bort slutdatumet så att prenumerationen blir pågående
 - Förloppsindikator, t.ex. "32 dagar kvar" eller "Utgången"
 - Ladda upp logga (📷) och dokument (PDF eller bild) från telefonen; tryck på loggan för att visa den och på dokumentet för att öppna det. Netflix, Spotify och Viaplay har inbyggda loggor som i webbappen
+- Pris per månad; listan visar summan för aktiva och kommande prenumerationer och ungefär hur mycket som betalats hittills, även per prenumeration i detaljvyn
 - Felmeddelanden i stället för krasch om API:et inte svarar
 - Samma logga och färgtema som webbappen
 
@@ -110,6 +111,7 @@ assets/images/logo.png          Appens logga (samma som i webbappen)
 - **Ett ställe för API-anrop**: `services/prenumerationApi.ts` gör om nätverksfel till svenska felmeddelanden.
 - **Lägg till direkt i listan**, som i lektionens uppgiftslista. Resten ställs in i detaljvyn, så inget separat formulär behövs.
 - **Datumväljare**: `@react-native-community/datetimepicker` fungerar i Expo Go. Hjul på Android (lätt att byta år), kalender på iOS.
+- **AsyncStorage för priset**: API:et har inget prisfält och ändrades inte efter inlämningen, så priset sparas lokalt i telefonen (motsvarigheten till `localStorage` på webben). Nackdelen är att priset bara finns på den enheten och inte syns i webbappen.
 - **expo-image-picker** och **expo-document-picker** väljer filer från telefonen och fungerar i Expo Go. Filerna skickas som `FormData` till samma upload-endpoints som webbappen använder.
 
 **Lektionens komponenter** har samma grundstruktur men har fått TypeScript-typer, appens färger och data från API:et:
