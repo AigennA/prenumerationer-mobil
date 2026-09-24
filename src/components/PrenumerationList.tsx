@@ -13,12 +13,20 @@ const VISIBLE_COUNT = 5;
 type Props = {
   prenumerationer: Prenumeration[];
   prices: Record<number, number | null>;
+  emptyText: string;
   isRefreshing: boolean;
   onRefresh: () => void;
   onSelect: (id: number) => void;
 };
 
-export default function PrenumerationList({ prenumerationer, prices, isRefreshing, onRefresh, onSelect }: Props) {
+export default function PrenumerationList({
+  prenumerationer,
+  prices,
+  emptyText,
+  isRefreshing,
+  onRefresh,
+  onSelect,
+}: Props) {
   const [expanded, setExpanded] = useState(false);
   const hiddenCount = prenumerationer.length - VISIBLE_COUNT;
   const visible = expanded ? prenumerationer : prenumerationer.slice(0, VISIBLE_COUNT);
@@ -42,7 +50,7 @@ export default function PrenumerationList({ prenumerationer, prices, isRefreshin
       refreshControl={
         <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor={colors.accent} />
       }
-      ListEmptyComponent={<Text style={styles.empty}>Inga prenumerationer ännu.</Text>}
+      ListEmptyComponent={<Text style={styles.empty}>{emptyText}</Text>}
       ListFooterComponent={
         hiddenCount > 0 ? (
           <TouchableOpacity style={styles.more} onPress={() => setExpanded(!expanded)}>

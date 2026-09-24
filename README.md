@@ -5,6 +5,7 @@ Appen är byggd med React Native och Expo och använder samma backend som webbap
 
 ## Funktioner
 - Lista med status **Aktiv**, **Kommande** och **Avslutad**, dra ner för att uppdatera
+- Sök bland prenumerationer på namn eller anteckning
 - Fem kort visas först, resten med **Visa fler**
 - Lägga till en prenumeration ovanför listan (POST)
 - Detaljvy där namn, anteckning, status och datum kan ändras (PUT)

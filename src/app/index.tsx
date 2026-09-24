@@ -5,6 +5,7 @@ import { ActivityIndicator, Image, StyleSheet, Text, View } from "react-native";
 import NyPrenumerationForm from "@/components/NyPrenumerationForm";
 import PressableButton from "@/components/PressableButton";
 import PrenumerationList from "@/components/PrenumerationList";
+import SearchField from "@/components/SearchField";
 import { colors } from "@/constants/colors";
 import { getAllLocalData } from "@/services/localData";
 import { API_BASE_URL, createPrenumeration, getPrenumerationer } from "@/services/prenumerationApi";
@@ -19,6 +20,7 @@ export default function Index() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState("");
+  const [search, setSearch] = useState("");
 
   const loadPrenumerationer = useCallback(async () => {
     setError("");
@@ -82,6 +84,11 @@ export default function Index() {
     );
   }
 
+  const query = search.trim().toLowerCase();
+  const filtered = query
+    ? prenumerationer.filter((item) => `${item.serviceName} ${item.note ?? ""}`.toLowerCase().includes(query))
+    : prenumerationer;
+
   const priced = prenumerationer.filter((item) => prices[item.id] != null);
   const active = priced.filter((item) => getStatus(item) === "active");
   const upcoming = priced.filter((item) => getStatus(item) === "pending");
@@ -112,9 +119,11 @@ export default function Index() {
           ) : null}
         </View>
       ) : null}
+      <SearchField value={search} onChangeText={setSearch} />
       <PrenumerationList
-        prenumerationer={prenumerationer}
+        prenumerationer={filtered}
         prices={prices}
+        emptyText={query ? "Inga prenumerationer matchar sökningen." : "Inga prenumerationer ännu."}
         isRefreshing={isRefreshing}
         onRefresh={handleRefresh}
         onSelect={(id) => router.push({ pathname: "/prenumeration/[id]", params: { id: String(id) } })}
