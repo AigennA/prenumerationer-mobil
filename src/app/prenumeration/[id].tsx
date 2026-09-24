@@ -5,12 +5,14 @@ import { ActivityIndicator, ScrollView, StyleSheet, Text, TextInput, View } from
 import Avatar from "@/components/Avatar";
 import DateField from "@/components/DateField";
 import PressableButton from "@/components/PressableButton";
+import ProgressBar from "@/components/ProgressBar";
 import StatusBadge from "@/components/StatusBadge";
 import ToggleSwitch from "@/components/ToggleSwitch";
 import { colors } from "@/constants/colors";
 import { getPrenumeration, updatePrenumeration } from "@/services/prenumerationApi";
 import { Prenumeration } from "@/types/prenumeration";
 import { getToday } from "@/utils/date";
+import { getPeriod } from "@/utils/period";
 import { getStatus } from "@/utils/status";
 
 function getEndDate(prenumeration: Prenumeration) {
@@ -98,6 +100,7 @@ export default function PrenumerationDetail() {
 
   const textChanged =
     serviceName.trim() !== prenumeration.serviceName || note.trim() !== (prenumeration.note ?? "");
+  const period = getPeriod(prenumeration);
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
@@ -170,6 +173,12 @@ export default function PrenumerationDetail() {
             disabled={saving}
           />
         </View>
+        {period ? (
+          <View style={styles.progress}>
+            <ProgressBar percent={period.percent} />
+            <Text style={styles.label}>{period.text}</Text>
+          </View>
+        ) : null}
       </View>
     </ScrollView>
   );
@@ -229,6 +238,10 @@ const styles = StyleSheet.create({
   },
   spacing: {
     marginTop: 12,
+  },
+  progress: {
+    marginTop: 16,
+    gap: 8,
   },
   saveError: {
     color: colors.danger,

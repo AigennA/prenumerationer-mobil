@@ -4,17 +4,12 @@ En mobilapp för att hålla koll på sina prenumerationer (t.ex. Netflix, Spotif
 Appen är byggd med React Native och Expo och använder samma backend som webbappen, så det som ändras i mobilen syns också i webbappen och tvärtom.
 
 ## Funktioner
-- Lista alla prenumerationer med status: **Aktiv** (grön), **Kommande** (blå, startdatum i framtiden) och **Avslutad** (grå)
-- Dra ner listan för att uppdatera den
-- Lägga till en ny prenumeration direkt ovanför listan (POST) — detaljvyn öppnas sedan automatiskt
-- Detaljvy för varje prenumeration (tryck på ett kort)
-- Ändra namn och anteckning och spara med **Spara ändringar** eller Enter (PUT)
-- Slå på/av en prenumeration med en switch (PUT)
-- Ändra start- och slutdatum med telefonens datumväljare (PUT)
-  - Ett slutdatum i framtiden betyder att prenumerationen fortfarande är aktiv
-  - Ett slutdatum som har passerat gör den avslutad
-  - ✕ tar bort slutdatumet så att prenumerationen blir pågående igen
-- Felmeddelanden visas om ett anrop till API:et misslyckas — appen kraschar inte
+- Lista med status **Aktiv**, **Kommande** och **Avslutad**, dra ner för att uppdatera
+- Lägga till en prenumeration ovanför listan (POST)
+- Detaljvy där namn, anteckning, status och datum kan ändras (PUT)
+- Datumväljare, ✕ tar bort slutdatumet så att prenumerationen blir pågående
+- Förloppsindikator, t.ex. "32 dagar kvar" eller "Utgången"
+- Felmeddelanden i stället för krasch om API:et inte svarar
 - Samma logga och färgtema som webbappen
 
 ## Så hänger delarna ihop
@@ -53,6 +48,7 @@ Webbappen körs i webbläsaren och behöver därför en CORS-inställning i API:
 git clone https://github.com/AigennA/PrenumerationerApi.git
 git clone https://github.com/AigennA/prenumerationer-mobil.git
 ```
+**Valfritt:** öppna båda projekten i samma VS Code-fönster med **File → Open Folder…**, markera `PrenumerationerApi` och `prenumerationer-mobil` och klicka **Välj mapp**. VS Code skapar då en arbetsyta med båda, så att de kan köras i var sin terminal.
 
 ### 2. Starta API:et (terminal 1)
 ```
@@ -100,29 +96,20 @@ src/
   constants/colors.ts           Färgerna (samma tema som webbappen)
   services/prenumerationApi.ts  Alla anrop till API:et
   types/prenumeration.ts        Datatypen, samma fält som C#-modellen i API:et
-  utils/                        Hjälpfunktioner för datum och status
+  utils/                        Hjälpfunktioner för datum, status och period
 assets/images/logo.png          Appens logga (samma som i webbappen)
 ```
 
 ## Tekniska val
 
-**TypeScript i mobilappen, JavaScript i webbappen.**
-Webbappen skapades med Vites JavaScript-mall. Mobilappen skapades med `create-expo-app`, vars mall använder TypeScript. Jag valde att behålla det eftersom typen `Prenumeration` har exakt samma fält som C#-modellen i API:et. Stavar jag fel på ett fält eller skickar fel typ av värde syns felet direkt i editorn, innan appen körs.
+- **TypeScript** (webbappen är JavaScript): typen `Prenumeration` har samma fält som C#-modellen, så fel syns i editorn innan appen körs.
+- **expo-router** i stället för React Navigation från lektionen: samma native-stack, men varje fil i `src/app` blir en skärm.
+- **StyleSheet**: inbyggt, ingen extra konfiguration. Färgerna ligger i `constants/colors.ts`, samma tema som webbappen.
+- **Ett ställe för API-anrop**: `services/prenumerationApi.ts` gör om nätverksfel till svenska felmeddelanden.
+- **Lägg till direkt i listan**, som i lektionens uppgiftslista. Resten ställs in i detaljvyn, så inget separat formulär behövs.
+- **Datumväljare**: `@react-native-community/datetimepicker` fungerar i Expo Go. Hjul på Android (lätt att byta år), kalender på iOS.
 
-**expo-router i stället för React Navigation.**
-På lektionen använde vi React Navigation med `native-stack`. expo-router bygger på samma native-stack men använder filbaserad routing: varje fil i `src/app` blir en skärm. Det blir mindre kod med samma beteende (header och tillbaka-knapp).
-
-**StyleSheet i stället för ett stylingbibliotek.**
-React Native har inga CSS-filer, stilarna skrivs som JavaScript-objekt med `StyleSheet.create`. Jag valde det inbyggda sättet eftersom det inte kräver extra konfiguration och är det vi använde på lektionen. Färgerna ligger samlat i `constants/colors.ts`, motsvarigheten till CSS-variablerna i webbappen, så båda apparna har samma tema.
-
-**Ett ställe för API-anrop.**
-Alla anrop går via `services/prenumerationApi.ts` och en gemensam `request`-funktion. Den gör om nätverksfel och felkoder till svenska felmeddelanden, så att skärmarna bara behöver visa meddelandet.
-
-**Lägga till direkt i listan.**
-Precis som i lektionens uppgiftslista finns ett textfält och en Lägg till-knapp ovanför listan. Bara namnet krävs; datum och status ställs in i detaljvyn som öppnas direkt efteråt. På så sätt återanvänds samma komponenter i stället för att bygga ett separat formulär.
-
-**Lektionens komponenter, anpassade till appen.**
-Komponenterna från lektionen har samma grundstruktur men har fått TypeScript-typer, appens färger och riktig data från API:et:
+**Lektionens komponenter** har samma grundstruktur men har fått TypeScript-typer, appens färger och data från API:et:
 
 | Lektionen | I appen |
 |---|---|
@@ -132,8 +119,6 @@ Komponenterna från lektionen har samma grundstruktur men har fått TypeScript-t
 | TaskList | `PrenumerationList` – FlatList med dra-för-att-uppdatera |
 | PressableButton | `PressableButton` – t.ex. Lägg till, Spara ändringar och Försök igen |
 | ToggleSwitch | `ToggleSwitch` – aktiv/avslutad |
+| ProgressBar | `ProgressBar` – hur stor del av perioden som har gått |
 
-I lektionens `ToggleSwitch` ligger värdet i komponentens egen `useState`. I appen skickas värdet och `onValueChange` in som props i stället, så att detaljvyn kan spara ändringen i API:et.
-
-**Datumväljare.**
-`@react-native-community/datetimepicker` öppnar telefonens egen datumväljare och fungerar i Expo Go. På Android visas hjul (spinner) för dag, månad och år eftersom det gör det lätt att byta år. På iOS visas en kalender i vyn.
+`ToggleSwitch` har inget eget `useState` som på lektionen; värdet kommer in som props så att detaljvyn kan spara det i API:et.

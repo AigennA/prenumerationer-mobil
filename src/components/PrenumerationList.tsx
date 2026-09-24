@@ -3,6 +3,7 @@ import { FlatList, RefreshControl, StyleSheet, Text } from "react-native";
 import PrenumerationCard from "@/components/PrenumerationCard";
 import { colors } from "@/constants/colors";
 import { Prenumeration } from "@/types/prenumeration";
+import { getPeriod } from "@/utils/period";
 import { getStatus } from "@/utils/status";
 
 type Props = {
@@ -23,6 +24,7 @@ export default function PrenumerationList({ prenumerationer, isRefreshing, onRef
           name={item.serviceName}
           note={item.note}
           status={getStatus(item)}
+          period={getPeriod(item)}
           onPress={() => onSelect(item.id)}
         />
       )}

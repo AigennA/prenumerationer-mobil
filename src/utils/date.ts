@@ -12,3 +12,7 @@ export function parseDate(value: string) {
 export function getToday() {
   return formatDate(new Date());
 }
+
+export function daysBetween(from: string, to: string) {
+  return Math.round((parseDate(to).getTime() - parseDate(from).getTime()) / 86400000);
+}

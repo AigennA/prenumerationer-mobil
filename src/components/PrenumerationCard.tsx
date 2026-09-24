@@ -1,18 +1,21 @@
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 import Avatar from "@/components/Avatar";
+import ProgressBar from "@/components/ProgressBar";
 import StatusBadge from "@/components/StatusBadge";
 import { colors } from "@/constants/colors";
+import { Period } from "@/utils/period";
 import { Status } from "@/utils/status";
 
 type Props = {
   name: string;
   note: string | null;
   status: Status;
+  period: Period | null;
   onPress?: () => void;
 };
 
-export default function PrenumerationCard({ name, note, status, onPress }: Props) {
+export default function PrenumerationCard({ name, note, status, period, onPress }: Props) {
   return (
     <TouchableOpacity
       style={[styles.card, { borderLeftColor: colors[status] }]}
@@ -25,6 +28,12 @@ export default function PrenumerationCard({ name, note, status, onPress }: Props
         <Text style={styles.note}>{note || " "}</Text>
         <StatusBadge status={status} />
       </View>
+      {period ? (
+        <View style={styles.period}>
+          <Text style={styles.periodText}>{period.text}</Text>
+          <ProgressBar percent={period.percent} height={6} />
+        </View>
+      ) : null}
     </TouchableOpacity>
   );
 }
@@ -54,5 +63,14 @@ const styles = StyleSheet.create({
   note: {
     color: colors.muted,
     fontSize: 14,
+  },
+  period: {
+    width: 110,
+    gap: 6,
+  },
+  periodText: {
+    color: colors.muted,
+    fontSize: 12,
+    textAlign: "right",
   },
 });
