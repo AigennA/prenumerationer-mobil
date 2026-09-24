@@ -15,7 +15,6 @@ type Props = {
 export default function PrenumerationList({ prenumerationer, isRefreshing, onRefresh, onSelect }: Props) {
   return (
     <FlatList
-      style={styles.list}
       contentContainerStyle={styles.content}
       data={prenumerationer}
       keyExtractor={(item) => String(item.id)}
@@ -36,9 +35,6 @@ export default function PrenumerationList({ prenumerationer, isRefreshing, onRef
 }
 
 const styles = StyleSheet.create({
-  list: {
-    backgroundColor: colors.background,
-  },
   content: {
     padding: 16,
   },

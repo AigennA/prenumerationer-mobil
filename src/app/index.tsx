@@ -1,6 +1,6 @@
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Image, StyleSheet, Text, View } from "react-native";
 
 import NyPrenumerationForm from "@/components/NyPrenumerationForm";
 import PressableButton from "@/components/PressableButton";
@@ -77,6 +77,7 @@ export default function Index() {
 
   return (
     <View style={styles.screen}>
+      <Image source={require("@/assets/images/logo.png")} style={styles.watermark} />
       <NyPrenumerationForm onAdd={handleAdd} />
       <PrenumerationList
         prenumerationer={prenumerationer}
@@ -92,6 +93,15 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  watermark: {
+    position: "absolute",
+    alignSelf: "center",
+    bottom: 80,
+    width: 220,
+    height: 220,
+    opacity: 0.06,
+    pointerEvents: "none",
   },
   center: {
     flex: 1,
