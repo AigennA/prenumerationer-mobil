@@ -62,3 +62,25 @@ export async function updatePrenumeration(prenumeration: Prenumeration): Promise
     body: JSON.stringify(prenumeration),
   });
 }
+
+
+export type UploadFile = {
+  uri: string;
+  name: string;
+  mimeType: string;
+};
+
+async function uploadFile(id: number, kind: "logo" | "document", file: UploadFile): Promise<Prenumeration> {
+  const body = new FormData();
+  body.append("file", { uri: file.uri, name: file.name, type: file.mimeType } as unknown as Blob);
+  const response = await request(`${API_URL}/${id}/${kind}`, { method: "POST", body });
+  return response.json();
+}
+
+export function uploadLogo(id: number, file: UploadFile) {
+  return uploadFile(id, "logo", file);
+}
+
+export function uploadDocument(id: number, file: UploadFile) {
+  return uploadFile(id, "document", file);
+}

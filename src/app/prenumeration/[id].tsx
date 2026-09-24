@@ -1,7 +1,21 @@
 import { Ionicons } from "@expo/vector-icons";
+import * as DocumentPicker from "expo-document-picker";
+import * as ImagePicker from "expo-image-picker";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Linking, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  Image,
+  Linking,
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 import Avatar from "@/components/Avatar";
 import DateField from "@/components/DateField";
@@ -10,7 +24,7 @@ import ProgressBar from "@/components/ProgressBar";
 import StatusBadge from "@/components/StatusBadge";
 import ToggleSwitch from "@/components/ToggleSwitch";
 import { colors } from "@/constants/colors";
-import { getFileUrl, getPrenumeration, updatePrenumeration } from "@/services/prenumerationApi";
+import { getFileUrl, getPrenumeration, updatePrenumeration, uploadDocument, uploadLogo } from "@/services/prenumerationApi";
 import { Prenumeration } from "@/types/prenumeration";
 import { getToday } from "@/utils/date";
 import { getLogo } from "@/utils/logo";
@@ -37,6 +51,8 @@ export default function PrenumerationDetail() {
   const [saveError, setSaveError] = useState("");
   const [serviceName, setServiceName] = useState("");
   const [note, setNote] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [showLogo, setShowLogo] = useState(false);
 
   useEffect(() => {
     getPrenumeration(Number(id))
@@ -84,6 +100,55 @@ export default function PrenumerationDetail() {
     save({ ...prenumeration, serviceName: trimmedName, note: trimmedNote || null });
   }
 
+  async function upload(send: () => Promise<Prenumeration>) {
+    setUploading(true);
+    setSaveError("");
+    try {
+      setPrenumeration(await send());
+    } catch (err) {
+      setSaveError((err as Error).message);
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  async function handlePickLogo() {
+    if (!prenumeration) return;
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+    if (result.canceled) return;
+    const asset = result.assets[0];
+    const mimeType = asset.mimeType ?? "image/jpeg";
+    await upload(() =>
+      uploadLogo(prenumeration.id, {
+        uri: asset.uri,
+        name: asset.fileName ?? `logga.${mimeType.split("/")[1]}`,
+        mimeType,
+      })
+    );
+  }
+
+  async function handlePickDocument() {
+    if (!prenumeration) return;
+    const result = await DocumentPicker.getDocumentAsync({
+      type: ["application/pdf", "image/*"],
+      copyToCacheDirectory: true,
+    });
+    if (result.canceled) return;
+    const asset = result.assets[0];
+    await upload(() =>
+      uploadDocument(prenumeration.id, {
+        uri: asset.uri,
+        name: asset.name,
+        mimeType: asset.mimeType ?? "application/octet-stream",
+      })
+    );
+  }
+
   if (error) {
     return (
       <View style={styles.center}>
@@ -103,17 +168,36 @@ export default function PrenumerationDetail() {
   const textChanged =
     serviceName.trim() !== prenumeration.serviceName || note.trim() !== (prenumeration.note ?? "");
   const period = getPeriod(prenumeration);
+  const logo = getLogo(prenumeration.serviceName, prenumeration.logoUrl);
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       <Stack.Screen options={{ title: prenumeration.serviceName }} />
 
+      <Modal visible={showLogo} transparent animationType="fade" onRequestClose={() => setShowLogo(false)}>
+        <Pressable style={styles.overlay} onPress={() => setShowLogo(false)}>
+          {logo ? <Image source={logo} style={styles.largeLogo} /> : null}
+        </Pressable>
+      </Modal>
+
       <View style={styles.header}>
-        <Avatar
-          name={prenumeration.serviceName}
-          size={96}
-          image={getLogo(prenumeration.serviceName, prenumeration.logoUrl)}
-        />
+        <View style={uploading ? styles.uploading : undefined}>
+          <TouchableOpacity
+            onPress={logo ? () => setShowLogo(true) : handlePickLogo}
+            disabled={uploading}
+            accessibilityLabel={logo ? "Visa logga" : "Ladda upp logga"}
+          >
+            <Avatar name={prenumeration.serviceName} size={96} image={logo} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.cameraBadge}
+            onPress={handlePickLogo}
+            disabled={uploading}
+            accessibilityLabel="Byt logga"
+          >
+            <Ionicons name="camera" size={16} color={colors.text} />
+          </TouchableOpacity>
+        </View>
         <Text style={styles.name}>{prenumeration.serviceName}</Text>
         <StatusBadge status={getStatus(prenumeration)} />
       </View>
@@ -187,9 +271,9 @@ export default function PrenumerationDetail() {
         ) : null}
       </View>
 
-      {prenumeration.documentUrl ? (
-        <View style={styles.section}>
-          <Text style={styles.label}>Dokument</Text>
+      <View style={styles.section}>
+        <Text style={styles.label}>Dokument</Text>
+        {prenumeration.documentUrl ? (
           <TouchableOpacity
             style={styles.document}
             onPress={() => Linking.openURL(getFileUrl(prenumeration.documentUrl!))}
@@ -197,8 +281,17 @@ export default function PrenumerationDetail() {
             <Ionicons name="document-text-outline" size={20} color={colors.accent} />
             <Text style={styles.documentName}>{prenumeration.documentName ?? "Öppna dokument"}</Text>
           </TouchableOpacity>
+        ) : (
+          <Text style={styles.value}>Inget dokument uppladdat</Text>
+        )}
+        <View style={styles.spacing}>
+          <PressableButton
+            title={prenumeration.documentUrl ? "Byt dokument" : "Ladda upp dokument"}
+            onPress={handlePickDocument}
+            disabled={uploading}
+          />
         </View>
-      ) : null}
+      </View>
     </ScrollView>
   );
 }
@@ -245,6 +338,10 @@ const styles = StyleSheet.create({
     color: colors.muted,
     fontSize: 13,
   },
+  value: {
+    color: colors.muted,
+    fontSize: 15,
+  },
   input: {
     backgroundColor: colors.background,
     borderWidth: 1,
@@ -278,5 +375,34 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontSize: 16,
   },
+    uploading: {
+    opacity: 0.5,
+  },
+  overlay: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
+  },
+  largeLogo: {
+    width: 160,
+    height: 160,
+    borderRadius: 20,
+  },
+  cameraBadge: {
+    position: "absolute",
+    right: -6,
+    bottom: -6,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.accent,
+    borderWidth: 3,
+    borderColor: colors.background,
+  },
+
 
 });
+
