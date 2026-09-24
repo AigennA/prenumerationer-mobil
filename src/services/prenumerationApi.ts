@@ -15,6 +15,10 @@ function getApiBaseUrl() {
 export const API_BASE_URL = getApiBaseUrl();
 const API_URL = `${API_BASE_URL}/api/prenumerationer`;
 
+export function getFileUrl(path: string) {
+  return `${API_BASE_URL}${path}`;
+}
+
 async function request(url: string, options?: RequestInit) {
   let response: Response;
   try {

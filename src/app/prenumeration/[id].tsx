@@ -1,6 +1,7 @@
+import { Ionicons } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, Linking, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 
 import Avatar from "@/components/Avatar";
 import DateField from "@/components/DateField";
@@ -9,9 +10,10 @@ import ProgressBar from "@/components/ProgressBar";
 import StatusBadge from "@/components/StatusBadge";
 import ToggleSwitch from "@/components/ToggleSwitch";
 import { colors } from "@/constants/colors";
-import { getPrenumeration, updatePrenumeration } from "@/services/prenumerationApi";
+import { getFileUrl, getPrenumeration, updatePrenumeration } from "@/services/prenumerationApi";
 import { Prenumeration } from "@/types/prenumeration";
 import { getToday } from "@/utils/date";
+import { getLogo } from "@/utils/logo";
 import { getPeriod } from "@/utils/period";
 import { getStatus } from "@/utils/status";
 
@@ -107,7 +109,11 @@ export default function PrenumerationDetail() {
       <Stack.Screen options={{ title: prenumeration.serviceName }} />
 
       <View style={styles.header}>
-        <Avatar name={prenumeration.serviceName} size={96} />
+        <Avatar
+          name={prenumeration.serviceName}
+          size={96}
+          image={getLogo(prenumeration.serviceName, prenumeration.logoUrl)}
+        />
         <Text style={styles.name}>{prenumeration.serviceName}</Text>
         <StatusBadge status={getStatus(prenumeration)} />
       </View>
@@ -180,6 +186,19 @@ export default function PrenumerationDetail() {
           </View>
         ) : null}
       </View>
+
+      {prenumeration.documentUrl ? (
+        <View style={styles.section}>
+          <Text style={styles.label}>Dokument</Text>
+          <TouchableOpacity
+            style={styles.document}
+            onPress={() => Linking.openURL(getFileUrl(prenumeration.documentUrl!))}
+          >
+            <Ionicons name="document-text-outline" size={20} color={colors.accent} />
+            <Text style={styles.documentName}>{prenumeration.documentName ?? "Öppna dokument"}</Text>
+          </TouchableOpacity>
+        </View>
+      ) : null}
     </ScrollView>
   );
 }
@@ -248,4 +267,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 8,
   },
+    document: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingVertical: 4,
+  },
+  documentName: {
+    flex: 1,
+    color: colors.text,
+    fontSize: 16,
+  },
+
 });

@@ -4,25 +4,27 @@ import Avatar from "@/components/Avatar";
 import ProgressBar from "@/components/ProgressBar";
 import StatusBadge from "@/components/StatusBadge";
 import { colors } from "@/constants/colors";
+import { getLogo } from "@/utils/logo";
 import { Period } from "@/utils/period";
 import { Status } from "@/utils/status";
 
 type Props = {
   name: string;
   note: string | null;
+  logoUrl: string | null;
   status: Status;
   period: Period | null;
   onPress?: () => void;
 };
 
-export default function PrenumerationCard({ name, note, status, period, onPress }: Props) {
+export default function PrenumerationCard({ name, note, logoUrl, status, period, onPress }: Props) {
   return (
     <TouchableOpacity
       style={[styles.card, { borderLeftColor: colors[status] }]}
       onPress={onPress}
       activeOpacity={0.7}
     >
-      <Avatar name={name} />
+      <Avatar name={name} image={getLogo(name, logoUrl)} />
       <View style={styles.info}>
         <Text style={styles.name}>{name}</Text>
         <Text style={styles.note}>{note || " "}</Text>

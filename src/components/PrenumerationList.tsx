@@ -31,6 +31,7 @@ export default function PrenumerationList({ prenumerationer, isRefreshing, onRef
         <PrenumerationCard
           name={item.serviceName}
           note={item.note}
+          logoUrl={item.logoUrl}
           status={getStatus(item)}
           period={getPeriod(item)}
           onPress={() => onSelect(item.id)}
