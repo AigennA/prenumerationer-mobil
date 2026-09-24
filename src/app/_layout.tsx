@@ -1,3 +1,4 @@
+import { Lobster_400Regular, useFonts } from "@expo-google-fonts/lobster";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { Image, StyleSheet, Text, View } from "react-native";
@@ -14,6 +15,10 @@ function AppTitle() {
 }
 
 export default function RootLayout() {
+  const [fontsLoaded] = useFonts({ Lobster_400Regular });
+
+  if (!fontsLoaded) return null;
+
   return (
     <>
       <StatusBar style="light" />
@@ -44,7 +49,7 @@ const styles = StyleSheet.create({
   },
   titleText: {
     color: colors.text,
-    fontSize: 18,
-    fontWeight: "700",
+    fontFamily: "Lobster_400Regular",
+    fontSize: 22,
   },
 });
