@@ -7,7 +7,7 @@ import PressableButton from "@/components/PressableButton";
 import PrenumerationList from "@/components/PrenumerationList";
 import SearchField from "@/components/SearchField";
 import { colors } from "@/constants/colors";
-import { getAllLocalData } from "@/services/localData";
+import { getAllLocalData, LocalData } from "@/services/localData";
 import { API_BASE_URL, createPrenumeration, getPrenumerationer } from "@/services/prenumerationApi";
 import { Prenumeration } from "@/types/prenumeration";
 import { getToday } from "@/utils/date";
@@ -16,7 +16,7 @@ import { getStatus } from "@/utils/status";
 
 export default function Index() {
   const [prenumerationer, setPrenumerationer] = useState<Prenumeration[]>([]);
-  const [prices, setPrices] = useState<Record<number, number | null>>({});
+  const [localData, setLocalData] = useState<Record<number, LocalData>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState("");
@@ -26,9 +26,8 @@ export default function Index() {
     setError("");
     try {
       const items = await getPrenumerationer();
-      const localData = await getAllLocalData(items.map((item) => item.id));
+      setLocalData(await getAllLocalData(items.map((item) => item.id)));
       setPrenumerationer(items);
-      setPrices(Object.fromEntries(items.map((item) => [item.id, localData[item.id].price])));
     } catch (err) {
       setError((err as Error).message);
     }
@@ -89,6 +88,9 @@ export default function Index() {
     ? prenumerationer.filter((item) => `${item.serviceName} ${item.note ?? ""}`.toLowerCase().includes(query))
     : prenumerationer;
 
+  const prices: Record<number, number | null> = Object.fromEntries(
+    prenumerationer.map((item) => [item.id, localData[item.id]?.price ?? null])
+  );
   const priced = prenumerationer.filter((item) => prices[item.id] != null);
   const active = priced.filter((item) => getStatus(item) === "active");
   const upcoming = priced.filter((item) => getStatus(item) === "pending");
@@ -122,7 +124,7 @@ export default function Index() {
       <SearchField value={search} onChangeText={setSearch} />
       <PrenumerationList
         prenumerationer={filtered}
-        prices={prices}
+        localData={localData}
         emptyText={query ? "Inga prenumerationer matchar sökningen." : "Inga prenumerationer ännu."}
         isRefreshing={isRefreshing}
         onRefresh={handleRefresh}

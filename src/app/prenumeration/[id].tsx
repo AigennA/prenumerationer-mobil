@@ -21,6 +21,7 @@ import Avatar from "@/components/Avatar";
 import DateField from "@/components/DateField";
 import PressableButton from "@/components/PressableButton";
 import ProgressBar from "@/components/ProgressBar";
+import StarRating from "@/components/StarRating";
 import StatusBadge from "@/components/StatusBadge";
 import ToggleSwitch from "@/components/ToggleSwitch";
 import { colors } from "@/constants/colors";
@@ -124,6 +125,13 @@ export default function PrenumerationDetail() {
     if (trimmedName !== prenumeration.serviceName || trimmedNote !== (prenumeration.note ?? "")) {
       await save({ ...prenumeration, serviceName: trimmedName, note: trimmedNote || null });
     }
+  }
+
+  async function handleRating(rating: number | null) {
+    if (!prenumeration) return;
+    const updated = { ...localData, rating };
+    await saveLocalData(prenumeration.id, updated);
+    setLocalData(updated);
   }
 
   async function upload(send: () => Promise<Prenumeration>) {
@@ -243,6 +251,13 @@ export default function PrenumerationDetail() {
           disabled={saving}
         />
       </View>
+      
+      <View style={styles.section}>
+        <Text style={styles.label}>Betyg</Text>
+        <StarRating value={localData.rating} onChange={handleRating} />
+        <Text style={styles.hint}>Tryck på en stjärna för att sätta betyg. Betyget sparas bara på den här telefonen.</Text>
+      </View>
+
 
       <View style={styles.section}>
         <Text style={styles.label}>Namn</Text>

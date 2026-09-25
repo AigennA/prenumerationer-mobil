@@ -2,6 +2,7 @@ import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 import Avatar from "@/components/Avatar";
 import ProgressBar from "@/components/ProgressBar";
+import StarRating from "@/components/StarRating";
 import StatusBadge from "@/components/StatusBadge";
 import { colors } from "@/constants/colors";
 import { getLogo } from "@/utils/logo";
@@ -16,10 +17,11 @@ type Props = {
   status: Status;
   period: Period | null;
   price: number | null;
+  rating: number | null;
   onPress?: () => void;
 };
 
-export default function PrenumerationCard({ name, note, logoUrl, status, period, price, onPress }: Props) {
+export default function PrenumerationCard({ name, note, logoUrl, status, period, price, rating, onPress }: Props) {
   return (
     <TouchableOpacity
       style={[styles.card, { borderLeftColor: colors[status] }]}
@@ -32,7 +34,7 @@ export default function PrenumerationCard({ name, note, logoUrl, status, period,
         <Text style={styles.note}>{note || " "}</Text>
         <StatusBadge status={status} />
       </View>
-      {price !== null || period ? (
+      {price !== null || period || rating !== null ? (
         <View style={styles.period}>
           {price !== null ? <Text style={styles.price}>{formatPrice(price)}</Text> : null}
           {period ? (
@@ -40,6 +42,11 @@ export default function PrenumerationCard({ name, note, logoUrl, status, period,
               <Text style={styles.periodText}>{period.text}</Text>
               <ProgressBar percent={period.percent} height={6} />
             </>
+          ) : null}
+          {rating !== null ? (
+            <View style={styles.rating}>
+              <StarRating value={rating} size={14} />
+            </View>
           ) : null}
         </View>
       ) : null}
@@ -87,5 +94,8 @@ const styles = StyleSheet.create({
     color: colors.muted,
     fontSize: 12,
     textAlign: "right",
+  },
+  rating: {
+    alignSelf: "flex-end",
   },
 });

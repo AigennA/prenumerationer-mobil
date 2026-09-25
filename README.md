@@ -13,6 +13,7 @@ Appen är byggd med React Native och Expo och använder samma backend som webbap
 - Förloppsindikator, t.ex. "32 dagar kvar" eller "Utgången"
 - Ladda upp logga (📷) och dokument (PDF eller bild) från telefonen; tryck på loggan för att visa den och på dokumentet för att öppna det. Netflix, Spotify och Viaplay har inbyggda loggor som i webbappen
 - Pris per månad; listan visar summan för aktiva och kommande prenumerationer och ungefär hur mycket som betalats hittills, även per prenumeration i detaljvyn
+- Betyg med 1–5 stjärnor i detaljvyn, visas även på kortet
 - Felmeddelanden i stället för krasch om API:et inte svarar
 - Samma logga och färgtema som webbappen
 
@@ -126,5 +127,6 @@ assets/images/logo.png          Appens logga (samma som i webbappen)
 | PressableButton | `PressableButton` – t.ex. Lägg till, Spara ändringar och Försök igen |
 | ToggleSwitch | `ToggleSwitch` – aktiv/avslutad |
 | ProgressBar | `ProgressBar` – hur stor del av perioden som har gått |
+| StarRating | `StarRating` – betyg i detaljvyn och på kortet |
 
 `ToggleSwitch` har inget eget `useState` som på lektionen; värdet kommer in som props så att detaljvyn kan spara det i API:et.

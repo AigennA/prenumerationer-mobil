@@ -4,6 +4,7 @@ import { FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity } from "re
 
 import PrenumerationCard from "@/components/PrenumerationCard";
 import { colors } from "@/constants/colors";
+import { LocalData } from "@/services/localData";
 import { Prenumeration } from "@/types/prenumeration";
 import { getPeriod } from "@/utils/period";
 import { getStatus } from "@/utils/status";
@@ -12,7 +13,7 @@ const VISIBLE_COUNT = 5;
 
 type Props = {
   prenumerationer: Prenumeration[];
-  prices: Record<number, number | null>;
+  localData: Record<number, LocalData>;
   emptyText: string;
   isRefreshing: boolean;
   onRefresh: () => void;
@@ -21,7 +22,7 @@ type Props = {
 
 export default function PrenumerationList({
   prenumerationer,
-  prices,
+  localData,
   emptyText,
   isRefreshing,
   onRefresh,
@@ -43,7 +44,8 @@ export default function PrenumerationList({
           logoUrl={item.logoUrl}
           status={getStatus(item)}
           period={getPeriod(item)}
-          price={prices[item.id] ?? null}
+          price={localData[item.id]?.price ?? null}
+          rating={localData[item.id]?.rating ?? null}
           onPress={() => onSelect(item.id)}
         />
       )}
