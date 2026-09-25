@@ -1,4 +1,4 @@
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import Avatar from "@/components/Avatar";
 import ProgressBar from "@/components/ProgressBar";
@@ -23,10 +23,9 @@ type Props = {
 
 export default function PrenumerationCard({ name, note, logoUrl, status, period, price, rating, onPress }: Props) {
   return (
-    <TouchableOpacity
-      style={[styles.card, { borderLeftColor: colors[status] }]}
+    <Pressable
+      style={({ pressed }) => [styles.card, { borderLeftColor: colors[status] }, pressed && styles.pressed]}
       onPress={onPress}
-      activeOpacity={0.7}
     >
       <Avatar name={name} image={getLogo(name, logoUrl)} />
       <View style={styles.info}>
@@ -50,7 +49,7 @@ export default function PrenumerationCard({ name, note, logoUrl, status, period,
           ) : null}
         </View>
       ) : null}
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 
@@ -66,6 +65,11 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     borderLeftWidth: 4,
     borderRadius: 14,
+  },
+  pressed: {
+    backgroundColor: colors.surfacePressed,
+    borderColor: colors.accent,
+    transform: [{ scale: 0.98 }],
   },
   info: {
     flex: 1,
