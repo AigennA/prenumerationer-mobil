@@ -85,9 +85,13 @@ EXPO_PUBLIC_API_URL=http://10.0.2.2:5175 npx expo start
 ```
 Med emulatorn räcker det att starta API:et med `dotnet run`.
 
+**I webbläsaren:** tryck `w` i Expo-terminalen. Datumväljaren och filuppladdningen använder då webbläsarens egna kontroller.
+
 ### Om något inte fungerar
 - **"Kunde inte ansluta till servern."** — kontrollera att API:et är igång, att datorn och mobilen är i samma nätverk och att API:et startades med `--urls http://0.0.0.0:5175`. Adressen som appen försöker nå visas under felmeddelandet. Tryck sedan på **Försök igen**.
 - **Appen visar gammal kod eller hittar inte en fil** — starta om med rensad cache: `npx expo start -c`
+- **Telefonen visar adressen 10.0.2.2** — den adressen fungerar bara i emulatorn. Starta Expo i en ny terminal utan `EXPO_PUBLIC_API_URL`.
+- **Expo Go stödjer inte SDK 57** — om Expo Go på telefonen har uppdaterats till en nyare SDK-version, använd Android-emulatorn. Expo installerar då rätt version av Expo Go automatiskt.
 - **Datan är tillbaka som från början** — API:et sparar prenumerationerna i minnet, så allt återställs när API:et startas om. Ingen databas krävs i uppgiften.
 
 ## Projektstruktur
@@ -113,7 +117,7 @@ assets/images/logo.png          Appens logga (samma som i webbappen)
 - **Ett ställe för API-anrop**: `services/prenumerationApi.ts` gör om nätverksfel till svenska felmeddelanden.
 - **Lägg till direkt i listan**, som i lektionens uppgiftslista. Resten ställs in i detaljvyn, så inget separat formulär behövs.
 - **Datumväljare**: `@react-native-community/datetimepicker` fungerar i Expo Go. Hjul på Android (lätt att byta år), kalender på iOS.
-- **AsyncStorage för priset**: API:et har inget prisfält och ändrades inte efter inlämningen, så priset sparas lokalt i telefonen (motsvarigheten till `localStorage` på webben). Nackdelen är att priset bara finns på den enheten och inte syns i webbappen.
+- **AsyncStorage för pris och betyg**: API:et har inga fält för pris eller betyg och ändrades inte efter inlämningen, så de sparas lokalt i telefonen (motsvarigheten till `localStorage` på webben). Nackdelen är att de bara finns på den enheten och inte syns i webbappen.
 - **expo-image-picker** och **expo-document-picker** väljer filer från telefonen och fungerar i Expo Go. Filerna skickas som `FormData` till samma upload-endpoints som webbappen använder.
 
 **Lektionens komponenter** har samma grundstruktur men har fått TypeScript-typer, appens färger och data från API:et:
