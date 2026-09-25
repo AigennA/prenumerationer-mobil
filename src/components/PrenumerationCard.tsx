@@ -29,8 +29,12 @@ export default function PrenumerationCard({ name, note, logoUrl, status, period,
     >
       <Avatar name={name} image={getLogo(name, logoUrl)} />
       <View style={styles.info}>
-        <Text style={styles.name}>{name}</Text>
-        <Text style={styles.note}>{note || " "}</Text>
+        <Text style={styles.name} numberOfLines={1}>
+          {name}
+        </Text>
+        <Text style={styles.note} numberOfLines={1}>
+          {note || " "}
+        </Text>
         <StatusBadge status={status} />
       </View>
       {price !== null || period || rating !== null ? (
@@ -58,6 +62,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 14,
+    minHeight: 116,
     padding: 14,
     marginBottom: 12,
     backgroundColor: colors.surface,

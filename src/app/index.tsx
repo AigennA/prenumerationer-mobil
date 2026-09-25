@@ -1,6 +1,6 @@
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
-import { ActivityIndicator, Image, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Image, Platform, StyleSheet, Text, View } from "react-native";
 
 import NyPrenumerationForm from "@/components/NyPrenumerationForm";
 import PressableButton from "@/components/PressableButton";
@@ -99,7 +99,7 @@ export default function Index() {
   const paidTotal = priced.reduce((sum, item) => sum + getPaidSoFar(item, prices[item.id]!), 0);
 
   return (
-    <View style={styles.screen}>
+    <View style={[styles.screen, Platform.OS === "web" && styles.webScreen]}>
       <Image source={require("@/assets/images/logo.png")} style={styles.watermark} />
       <NyPrenumerationForm onAdd={handleAdd} />
       {priced.length > 0 ? (
@@ -138,6 +138,11 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  webScreen: {
+    width: "100%",
+    maxWidth: 720,
+    alignSelf: "center",
   },
   watermark: {
     position: "absolute",

@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
-import { FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity } from "react-native";
+import { FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import PrenumerationCard from "@/components/PrenumerationCard";
 import { colors } from "@/constants/colors";
@@ -29,6 +30,7 @@ export default function PrenumerationList({
   onSelect,
 }: Props) {
   const [expanded, setExpanded] = useState(false);
+  const insets = useSafeAreaInsets();
   const hiddenCount = prenumerationer.length - VISIBLE_COUNT;
   const visible = expanded ? prenumerationer : prenumerationer.slice(0, VISIBLE_COUNT);
 
@@ -53,13 +55,19 @@ export default function PrenumerationList({
         <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor={colors.accent} />
       }
       ListEmptyComponent={<Text style={styles.empty}>{emptyText}</Text>}
+      ListFooterComponentStyle={styles.footer}
       ListFooterComponent={
-        hiddenCount > 0 ? (
-          <TouchableOpacity style={styles.more} onPress={() => setExpanded(!expanded)}>
-            <Text style={styles.moreText}>{expanded ? "Visa färre" : `Visa fler (${hiddenCount})`}</Text>
-            <Ionicons name={expanded ? "chevron-up" : "chevron-down"} size={18} color={colors.accent} />
-          </TouchableOpacity>
-        ) : null
+        <>
+          {hiddenCount > 0 ? (
+            <TouchableOpacity style={styles.more} onPress={() => setExpanded(!expanded)}>
+              <Text style={styles.moreText}>{expanded ? "Visa färre" : `Visa fler (${hiddenCount})`}</Text>
+              <Ionicons name={expanded ? "chevron-up" : "chevron-down"} size={18} color={colors.accent} />
+            </TouchableOpacity>
+          ) : (
+            <View />
+          )}
+          <Text style={[styles.copyright, { marginBottom: insets.bottom }]}>© 2026 AggeDev</Text>
+        </>
       }
     />
   );
@@ -67,7 +75,12 @@ export default function PrenumerationList({
 
 const styles = StyleSheet.create({
   content: {
+    flexGrow: 1,
     padding: 16,
+  },
+  footer: {
+    flexGrow: 1,
+    justifyContent: "space-between",
   },
   empty: {
     color: colors.muted,
@@ -85,5 +98,12 @@ const styles = StyleSheet.create({
     color: colors.accent,
     fontSize: 15,
     fontWeight: "600",
+  },
+  copyright: {
+    color: colors.muted,
+    fontSize: 12,
+    textAlign: "center",
+    marginTop: 16,
+    opacity: 0.7,
   },
 });

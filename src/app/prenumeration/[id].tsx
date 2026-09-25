@@ -8,6 +8,7 @@ import {
   Image,
   Linking,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -210,7 +211,11 @@ export default function PrenumerationDetail() {
   const paymentCount = getPaymentCount(prenumeration);
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+    <ScrollView
+      style={styles.screen}
+      contentContainerStyle={[styles.content, Platform.OS === "web" && styles.webContent]}
+      keyboardShouldPersistTaps="handled"
+    >
       <Stack.Screen options={{ title: prenumeration.serviceName }} />
 
       <Modal visible={showLogo} transparent animationType="fade" onRequestClose={() => setShowLogo(false)}>
@@ -371,6 +376,11 @@ const styles = StyleSheet.create({
   content: {
     padding: 16,
     gap: 16,
+  },
+  webContent: {
+    width: "100%",
+    maxWidth: 720,
+    alignSelf: "center",
   },
   center: {
     flex: 1,

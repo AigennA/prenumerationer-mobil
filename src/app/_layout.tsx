@@ -1,7 +1,7 @@
 import { Lobster_400Regular, useFonts } from "@expo-google-fonts/lobster";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { Image, StyleSheet, Text, View } from "react-native";
+import { Image, Platform, StyleSheet, Text, View } from "react-native";
 
 import { colors } from "@/constants/colors";
 
@@ -27,6 +27,7 @@ export default function RootLayout() {
           headerStyle: { backgroundColor: colors.surface },
           headerTintColor: colors.text,
           headerTitleStyle: { fontWeight: "700" },
+          headerTitleAlign: Platform.OS === "web" ? "center" : "left",
           contentStyle: { backgroundColor: colors.background },
         }}
       >
