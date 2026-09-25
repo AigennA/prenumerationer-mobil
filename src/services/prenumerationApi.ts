@@ -1,10 +1,12 @@
 import Constants from "expo-constants";
+import { Platform } from "react-native";
 
 import { NyPrenumeration, Prenumeration } from "@/types/prenumeration";
 
 const API_PORT = 5175;
 
 function getApiBaseUrl() {
+  if (Platform.OS === "web") return `http://localhost:${API_PORT}`;
   if (process.env.EXPO_PUBLIC_API_URL) {
     return process.env.EXPO_PUBLIC_API_URL;
   }
@@ -68,11 +70,16 @@ export type UploadFile = {
   uri: string;
   name: string;
   mimeType: string;
+  file?: File;
 };
 
 async function uploadFile(id: number, kind: "logo" | "document", file: UploadFile): Promise<Prenumeration> {
   const body = new FormData();
-  body.append("file", { uri: file.uri, name: file.name, type: file.mimeType } as unknown as Blob);
+  if (file.file) {
+    body.append("file", file.file, file.name);
+  } else {
+    body.append("file", { uri: file.uri, name: file.name, type: file.mimeType } as unknown as Blob);
+  }
   const response = await request(`${API_URL}/${id}/${kind}`, { method: "POST", body });
   return response.json();
 }

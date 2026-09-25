@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { useState } from "react";
+import { CSSProperties, useState } from "react";
 import { Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 import { colors } from "@/constants/colors";
@@ -38,22 +38,35 @@ export default function DateField({
     <View>
       <Text style={styles.label}>{label}</Text>
       <View style={styles.row}>
-        <TouchableOpacity
-          style={styles.picker}
-          onPress={() => setOpen(!open)}
-          disabled={disabled}
-          accessibilityLabel={`Ändra ${label.toLowerCase()}`}
-        >
-          <Text style={styles.value}>{value ?? placeholder}</Text>
-          <Ionicons name="calendar-outline" size={20} color={colors.accent} />
-        </TouchableOpacity>
+        {Platform.OS === "web" ? (
+          <input
+            type="date"
+            value={value ?? ""}
+            min={minimumDate ?? undefined}
+            max={maximumDate ?? undefined}
+            disabled={disabled}
+            aria-label={`Ändra ${label.toLowerCase()}`}
+            onChange={(event) => event.target.value && onChange(event.target.value)}
+            style={webDateInput}
+          />
+        ) : (
+          <TouchableOpacity
+            style={styles.picker}
+            onPress={() => setOpen(!open)}
+            disabled={disabled}
+            accessibilityLabel={`Ändra ${label.toLowerCase()}`}
+          >
+            <Text style={styles.value}>{value ?? placeholder}</Text>
+            <Ionicons name="calendar-outline" size={20} color={colors.accent} />
+          </TouchableOpacity>
+        )}
         {value && onClear ? (
           <TouchableOpacity onPress={onClear} disabled={disabled} accessibilityLabel={`Ta bort ${label.toLowerCase()}`}>
             <Ionicons name="close-circle-outline" size={20} color={colors.muted} />
           </TouchableOpacity>
         ) : null}
       </View>
-      {open ? (
+      {open && Platform.OS !== "web" ? (
         <DateTimePicker
           value={value ? parseDate(value) : new Date()}
           mode="date"
@@ -69,6 +82,16 @@ export default function DateField({
     </View>
   );
 }
+
+const webDateInput: CSSProperties = {
+  flex: 1,
+  padding: "4px 0",
+  border: "none",
+  background: "transparent",
+  color: colors.text,
+  fontSize: 16,
+  colorScheme: "dark",
+};
 
 const styles = StyleSheet.create({
   label: {

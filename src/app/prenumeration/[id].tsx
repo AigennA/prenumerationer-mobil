@@ -154,6 +154,7 @@ export default function PrenumerationDetail() {
         uri: asset.uri,
         name: asset.fileName ?? `logga.${mimeType.split("/")[1]}`,
         mimeType,
+        file: asset.file,
       })
     );
   }
@@ -171,6 +172,7 @@ export default function PrenumerationDetail() {
         uri: asset.uri,
         name: asset.name,
         mimeType: asset.mimeType ?? "application/octet-stream",
+        file: asset.file,
       })
     );
   }
